@@ -87,23 +87,26 @@ setWholePartC = myAssembly.Set(
     name='Set-wholePartC',)
 
 # part3 连接件的集合的选中方式为，空间内所有连线全选，减去load产生的set.
-setForMPCwires = myAssembly.sets["MPCwires"]
+# 全选
 setForConnector = myAssembly.Set(
     edges=myAssembly.edges.getByBoundingBox(
         xMin=-rangeOfModel,xMax=rangeOfModel,
         yMin=-rangeOfModel,yMax=rangeOfModel,
         zMin=-rangeOfModel,zMax=rangeOfModel,),
     name='Set-connectWire',)
-# 此处做集合的差集。
-setForConnector = myAssembly.SetByBoolean(
-    name='Set-connectWire',
-    sets=[setForConnector, setForMPCwires],
-    operation=DIFFERENCE,
-    )
-myAssembly.SectionAssignment(
-    region=setForConnector, 
-    sectionName='LockU1U2U3',
-    )
+# 考虑单个其吊点的情况，这种情况不需要作差集。
+if myAssembly.sets.has_key("MPCwires"):
+    setForMPCwires = myAssembly.sets["MPCwires"]
+    # 此处做集合的差集。
+    setForConnector = myAssembly.SetByBoolean(
+        name='Set-connectWire',
+        sets=[setForConnector, setForMPCwires],
+        operation=DIFFERENCE,
+        )
+    myAssembly.SectionAssignment(
+        region=setForConnector, 
+        sectionName='LockU1U2U3',
+        )
 myAssembly.regenerate()
 
 # ---------------------------Part3及连接件创建结束-----------------------
