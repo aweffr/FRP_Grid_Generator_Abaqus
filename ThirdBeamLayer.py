@@ -25,7 +25,7 @@ modelFile.close()
 
 odbDeformationData = shelve.open("washedPoints-Closer-Multi3-11.dat")
 
-Inner_Points = f["Inner_Points"]
+Inner_Points = odbDeformationData["Inner_Points"]
 Inner_Points = sorted(Inner_Points, key=operator.itemgetter(0,1))
 Inner_Points = Inner_Points[::2]
 
