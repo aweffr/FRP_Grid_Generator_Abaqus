@@ -34,9 +34,10 @@ rangeOfModel = 80.0
 
 
 modelFile = shelve.open("D:\\abaqus_execpy\\TrueModel\\data\\modelPoints-Current.dat")
-s = shelve.open("D:\\abaqus_execpy\\TrueModel\\data\\thirdBeam-%d.dat"%time)
 time = modelFile["time"]
 modelFile.close()
+
+s = shelve.open("D:\\abaqus_execpy\\TrueModel\\data\\thirdBeam-%d.dat"%time)
 
 saveFileName = 'addPartC-Closer-Multi3-%d.cae'%time
 
@@ -62,6 +63,11 @@ for key, arraylst in pointDict.iteritems():
         tempPointList.append(tuple(point),)
     myPartC.WirePolyLine(mergeWire=OFF, meshable=ON, points=tempPointList)
 
+# PartC Meshing
+myPartC.seedPart(deviationFactor=0.1, minSizeFactor=0.1, size=0.25)
+myPartC.generateMesh()
+
+
 # 引入PartC进assembly
 Instance_A = myAssembly.instances['PartA']
 Instance_B = myAssembly.instances['PartB']
@@ -70,7 +76,7 @@ set_PartC_Points = setMaker(pointForSetMaker, Instance_C, 'PartC_Hingle')
 
 # 连线，line
 for key, arraylst in pointDict.iteritems():
-    for point in arraylst:
+    for coord in arraylst:
         planeCoord = coord[:3]
         spaceCoord = coord[3:]
         vertix1 = Instance_B.vertices.findAt((planeCoord),)
@@ -78,7 +84,9 @@ for key, arraylst in pointDict.iteritems():
         myAssembly.WirePolyLine(mergeWire=OFF, meshable=OFF, 
             points=((vertix1, vertix2), )
             )
+
 connector = myModel.ConnectorSection(name='LockU1U2U3', translationalType=JOIN)
+
 setWholePartC = myAssembly.Set(
     edges=Instance_C.edges.getByBoundingBox(
         xMin=-rangeOfModel,xMax=rangeOfModel,
@@ -103,10 +111,12 @@ if myAssembly.sets.has_key("MPCwires"):
         sets=[setForConnector, setForMPCwires],
         operation=DIFFERENCE,
         )
-    myAssembly.SectionAssignment(
-        region=setForConnector, 
-        sectionName='LockU1U2U3',
-        )
+
+myAssembly.SectionAssignment(
+    region=setForConnector, 
+    sectionName='LockU1U2U3',
+    )
+
 myAssembly.regenerate()
 
 # ---------------------------Part3及连接件创建结束-----------------------
