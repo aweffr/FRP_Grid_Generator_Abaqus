@@ -67,6 +67,21 @@ for key, arraylst in pointDict.iteritems():
 myPartC.seedPart(deviationFactor=0.1, minSizeFactor=0.1, size=0.25)
 myPartC.generateMesh()
 
+# Section
+partSetC = myPartC.Set(
+    edges=myPartC.edges.getByBoundingBox(
+        xMin=-rangeOfModel, xMax=rangeOfModel,
+        yMin=-rangeOfModel, yMax=rangeOfModel,
+        zMin=-rangeOfModel, zMax=rangeOfModel,
+        ),
+    name='PartC')
+myPartC.SectionAssignment(
+    offset=0.0,
+    offsetField='',
+    offsetType=MIDDLE_SURFACE,
+    region=partSetC,
+    sectionName='Pipe',
+    thicknessAssignment=FROM_SECTION)
 
 # 引入PartC进assembly
 Instance_A = myAssembly.instances['PartA']
