@@ -70,7 +70,7 @@ def odbNodeDeformation(odbPath = 'D:/My Docs/AbaqusTemp/FRPGrid-.odb',
             if isInnerPoints(orignalCoordinate, InnerPoints):
                 tempArray = zeros(6, float)
                 tempArray[:3] = orignalCoordinate
-                tempArray[3:] = deformationVector
+                tempArray[3:] = orignalCoordinate + deformationVector
                 innerPoints_Deformed.append(tempArray)
             else:
                 orignalCoordinate[-1] = deformationVector[-1]
