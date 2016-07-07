@@ -16,12 +16,23 @@ def isSamePoint(point1, point2, err=0.0002):
     else:
         return False
 
-def isInnerPoints(point, innerPointLst, err=0.0002):
+def isInnerPoints(inputPoint, innerPointLst, err=0.0002):
     # point -> 判断改点算不算内部点
     # innerPointLst -> 模型文件中内部点的坐标
+    isInner = False
+    for point in innerPointLst:
+        if isSamePoint(inputPoint, point):
+            isInner = True
+            break
+    return isInner
 
-
-    modelNodeFile.close()
+def stderr(pointlst):
+    # To compute the standard error of z direction deformation.
+    temp_z = []
+    for point in pointlst:
+    	temp_z.append(point[2])
+    stderr = std(temp_z)
+    print "The std err is %.3f"%stderr
 
 def odbNodeDeformation(odbPath = 'D:/My Docs/AbaqusTemp/FRPGrid-.odb',
     outFilePath=r'D:\abaqus_execpy\outdata\coord.txt',
@@ -59,7 +70,7 @@ def odbNodeDeformation(odbPath = 'D:/My Docs/AbaqusTemp/FRPGrid-.odb',
             if isInnerPoints(orignalCoordinate, InnerPoints):
                 tempArray = zeros(6, float)
                 tempArray[:3] = orignalCoordinate
-                tempArray[4:] = deformationVector
+                tempArray[3:] = deformationVector
                 innerPoints_Deformed.append(tempArray)
             else:
                 orignalCoordinate[-1] = deformationVector[-1]
@@ -71,52 +82,10 @@ def odbNodeDeformation(odbPath = 'D:/My Docs/AbaqusTemp/FRPGrid-.odb',
     outFile['Bound_Points'] = boundPoints_Deformed
     outFile['Inner_Points'] = innerPoints_Deformed
     print 'Odb data classfication Complete!'
-    outFile.close()
-
-def NodesFilter(shelveFileLocation, modelFilePath, outFilePath, accuracy = 0.001):
-    pointInfo = shelve.open(shelveFileLocation)
-    modelNodeFile = shelve.open(modelFilePath)
-    outFile = shelve.open(outFilePath)
-
-    if pointInfo.has_key("out_points"):
-        out_points = pointInfo["out_points"]
-        print "Raw data received! len(data) = %d"%(len(out_points))
-    else:
-        raise Exception, "Check the shelve file which contains the raw points info."
-
-    xBoundPoints = modelNodeFile['xCoordPoints']
-    yBoundPoints = modelNodeFile['yCoordPoints']
-    InnerPoints = modelNodeFile['inCoordPoints']
-
-    allBoundPoints = xBoundPoints + yBoundPoints
-
-    # Init two lsts for output shelve.
-    tempBound = []
-    tempInner = []
-
-    for point in out_points:
-        isBoundPoints = False
-        for origin_point in allBoundPoints:
-            if abs(point[0]-origin_point[0]) < accuracy and abs(point[1]-origin_point[1]) < accuracy:
-                tempBound.append(point)
-                isBoundPoints = True
-                break
-        if not isBoundPoints:
-            tempInner.append(point)        
-    outFile['Bound_Points'] = tempBound
-    outFile['Inner_Points'] = tempInner
-    modelNodeFile.close()
-    pointInfo.close()
-    outFile.close()
-    print "Raw data processing complete!"
     print "File is saved at %s"%outFilePath
+    outFile.close()
+    stderr(boundPoints_Deformed)
 
-    # To compute the standard error of z direction deformation.
-    temp_z = []
-    for point in tempBound:
-    	temp_z.append(point[2])
-    stderr = std(temp_z)
-    print "The std err is %.3f"%stderr
 
 if __name__ == '__main__':
     file = shelve.open("D:\\abaqus_execpy\\TrueModel\\data\\modelPoints-Current.dat")
@@ -135,7 +104,6 @@ if __name__ == '__main__':
     washedDataName = "washedPoints-Closer-Multi3-%d.dat"%time
 
     odbNodeDeformation(odbPath='D:/abaqus_execpy/TrueModel/abaqusData/%s'%odbFileName,
-        outPath='D:\\abaqus_execpy\\TrueModel\\data\\%s'%rawDeformationDataName)
-    NodesFilter(shelveFileLocation='D:\\abaqus_execpy\\TrueModel\\data\\%s'%rawDeformationDataName,
+        outFilePath='D:\\abaqus_execpy\\TrueModel\\data\\%s'%washedDataName,
         modelFilePath='D:\\abaqus_execpy\\TrueModel\\data\\%s'%modelPoints,
-        outFilePath='D:\\abaqus_execpy\\TrueModel\\data\\%s'%washedDataName)
+        )
