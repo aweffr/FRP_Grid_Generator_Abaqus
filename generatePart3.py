@@ -18,6 +18,8 @@ from operator import itemgetter
 
 def setMaker(coordData, targetInstance, setName='default'):
     # 定义点集合，输入格式为： 点坐标集合， 目标实体， 输出set名称
+    # 本函数用于查找所有实体上该坐标列表的端点，并将其生成一个组
+    # 本函数仅用于vertices
     setForAbaqus = []
     for tup in coordData:
     # 此处大坑，findAt((tup,),) 这个格式的原因待考证
@@ -32,6 +34,7 @@ rangeOfModel = 80.0
 
 
 modelFile = shelve.open("D:\\abaqus_execpy\\TrueModel\\data\\modelPoints-Current.dat")
+s = shelve.open("D:\\abaqus_execpy\\TrueModel\\data\\thirdBeam-%d.dat"%time)
 time = modelFile["time"]
 modelFile.close()
 
@@ -48,14 +51,13 @@ set_PartB_Bound = myAssembly.sets['PartB_Boundary']
 
 # ---------------------创建PartC---------------------------------
 myPartC = myModel.Part(dimensionality=THREE_D, name='Part C', type=DEFORMABLE_BODY)
-s = shelve.open('thirdBeam-%d.dat'%time)
+
 pointDict = s['pointDict']
 pointForSetMaker = []
-for key, mat in s.items():
-    mat = array(sorted(mat, key=itemgetter(0),),)
-    mat = mat[0::2,3:]
+for key, arraylst in pointDict.iteritems():
     tempPointList = []
-    for point in mat:
+    for point in arraylst:
+        point = point[3:]
         pointForSetMaker.append(tuple(point),)
         tempPointList.append(tuple(point),)
     myPartC.WirePolyLine(mergeWire=OFF, meshable=ON, points=tempPointList)
@@ -67,11 +69,9 @@ Instance_C = myAssembly.Instance(dependent=ON, name='PartC', part=myPartC)
 set_PartC_Points = setMaker(pointForSetMaker, Instance_C, 'PartC_Hingle')
 
 # 连线，line
-for key, mat in s.items():
-    mat = array(sorted(mat, key=itemgetter(0),),)
-    mat = mat[0::2]
-    for coord in mat:
-        planeCoord = coord[0:3]
+for key, arraylst in pointDict.iteritems():
+    for point in arraylst:
+        planeCoord = coord[:3]
         spaceCoord = coord[3:]
         vertix1 = Instance_B.vertices.findAt((planeCoord),)
         vertix2 = Instance_C.vertices.findAt((spaceCoord),)
@@ -85,12 +85,21 @@ setWholePartC = myAssembly.Set(
         yMin=-rangeOfModel,yMax=rangeOfModel,
         zMin=-rangeOfModel,zMax=rangeOfModel,),
     name='Set-wholePartC',)
+
+# part3 连接件的集合的选中方式为，空间内所有连线全选，减去load产生的set.
+setForMPCwires = myAssembly.sets["MPCwires"]
 setForConnector = myAssembly.Set(
     edges=myAssembly.edges.getByBoundingBox(
         xMin=-rangeOfModel,xMax=rangeOfModel,
         yMin=-rangeOfModel,yMax=rangeOfModel,
         zMin=-rangeOfModel,zMax=rangeOfModel,),
     name='Set-connectWire',)
+# 此处做集合的差集。
+setForConnector = myAssembly.SetByBoolean(
+    name='Set-connectWire',
+    sets=[setForConnector, setForMPCwires],
+    operation=DIFFERENCE,
+    )
 myAssembly.SectionAssignment(
     region=setForConnector, 
     sectionName='LockU1U2U3',
@@ -100,8 +109,8 @@ myAssembly.regenerate()
 # ---------------------------Part3及连接件创建结束-----------------------
 
 # 创建后续分析步
-mdb.models['Model A'].StaticStep(name='Step-2', previous='Step-1', minInc = 0.000000025, initialInc=0.0000025, maxNumInc=50000000)
-mdb.models['Model A'].StaticStep(name='Step-3', previous='Step-2', minInc = 0.000000025, initialInc=0.0000025, maxNumInc=50000000)
+step2 = myModel.StaticStep(name='Step-2', previous='Step-1', minInc = 0.000000025, initialInc=0.0000025, maxNumInc=50000000)
+step3 = myModel.StaticStep(name='Step-3', previous='Step-2', minInc = 0.000000025, initialInc=0.0000025, maxNumInc=50000000)
 
 # ModelChange
 modelChange1 = myModel.ModelChange(
