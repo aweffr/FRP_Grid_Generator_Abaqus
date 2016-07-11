@@ -16,7 +16,7 @@ def isSamePoint(point1, point2, err=0.0002):
     else:
         return False
 
-def isInnerPoints(inputPoint, innerPointLst, err=0.0002):
+def isSetPoints(inputPoint, innerPointLst, err=0.0002):
     # point -> 判断改点算不算内部点
     # innerPointLst -> 模型文件中内部点的坐标
     isInner = False
@@ -67,12 +67,12 @@ def odbNodeDeformation(odbPath = 'D:/My Docs/AbaqusTemp/FRPGrid-.odb',
             deformationVector = array(value.data)
             orignalCoordinate = array(value.instance.nodes[value.nodeLabel-1].coordinates)
             # 此处判断该点是否为边界点
-            if isInnerPoints(orignalCoordinate, InnerPoints):
+            if isSetPoints(orignalCoordinate, InnerPoints):
                 tempArray = zeros(6, float)
                 tempArray[:3] = orignalCoordinate
                 tempArray[3:] = orignalCoordinate + deformationVector
                 innerPoints_Deformed.append(tempArray)
-            else:
+            elif isSetPoints(orignalCoordinate, xBoundPoints) or isSetPoints(orignalCoordinate, yBoundPoints):
                 orignalCoordinate[-1] = deformationVector[-1]
                 # orignalCoordinate的数据结构变成（x,y,z），x,y为平面上坐标的点，z为位移的变化量
                 boundPoints_Deformed.append(orignalCoordinate)
@@ -98,10 +98,13 @@ if __name__ == '__main__':
     file.close()
     fileToCopy.close()
     
-    modelPoints = "modelPoints-Closer-Multi3-%d.dat"%time
-    odbFileName = "trueModel-Closer-Multi3-%d.odb"%time
-    rawDeformationDataName = "deformation-Closer-Multi3-%d.dat"%time
-    washedDataName = "washedPoints-Closer-Multi3-%d.dat"%time
+    # modelPoints = "modelPoints-Closer-Multi3-%d.dat"%time
+    # odbFileName = "trueModel-Closer-Multi3-%d.odb"%time
+    # washedDataName = "washedPoints-Closer-Multi3-%d.dat"%time
+
+    modelPoints = "modelPoints-7.dat"
+    odbFileName = "trueModel-7.odb"
+    washedDataName = "washedPoints-7.dat"
 
     odbNodeDeformation(odbPath='D:/abaqus_execpy/TrueModel/abaqusData/%s'%odbFileName,
         outFilePath='D:\\abaqus_execpy\\TrueModel\\data\\%s'%washedDataName,
