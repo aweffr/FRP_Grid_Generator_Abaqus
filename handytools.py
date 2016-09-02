@@ -94,10 +94,10 @@ class LinearInterpolation(object):
             if cmp[0] < y_val and y_val < cmp[1]:
                 root_found = True
                 x_root = (y_val - y_left)*(x_right - x_left)/(y_right - y_left) + x_left
-            elif abs(y_val - y_left) < 0.0001:
+            elif abs(y_val - y_left) < 0.000025:
                 root_found = True
                 x_root = x_left
-            elif abs(y_val - y_right) < 0.0001:
+            elif abs(y_val - y_right) < 0.000025:
                 root_found = True
                 x_root = x_right
             if root_found and out['root_x'][-1]!=x_root:

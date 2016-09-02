@@ -39,8 +39,8 @@ rangeOfModel = 80.0
 
 # s = shelve.open("D:\\abaqus_execpy\\TrueModel\\data\\thirdBeam-%d.dat"%time)
 s = shelve.open("D:\\abaqus_execpy\\TrueModel\\data\\thirdBeam-7.dat")
-saveFileName = 'addPartC-7.cae'
-jobName = 'addPartC-7'
+saveFileName = 'addPartC-FixFirst-7.cae'
+jobName = 'addPartC-FixFirst-7'
 
 myModel = mdb.models['Model A']
 myAssembly = myModel.rootAssembly
@@ -143,54 +143,54 @@ myAssembly.regenerate()
 # ---------------------------Part3及连接件创建结束-----------------------
 
 # 创建后续分析步
-step2 = myModel.StaticStep(
-    name='Step-2', previous='Step-1', minInc = 0.000000025, 
-    initialInc=0.0000025, maxInc=0.025, maxNumInc=50000000, 
-    )
-step3 = myModel.StaticStep(
-    name='Step-3', previous='Step-2', minInc = 0.000000025, 
-    initialInc=0.0000025, maxInc=0.025, maxNumInc=50000000, 
-    )
+# step2 = myModel.StaticStep(
+#     name='Step-2', previous='Step-1', minInc = 0.000000025, 
+#     initialInc=0.0000025, maxInc=0.025, maxNumInc=50000000, 
+#     )
+# step3 = myModel.StaticStep(
+#     name='Step-3', previous='Step-2', minInc = 0.000000025, 
+#     initialInc=0.0000025, maxInc=0.025, maxNumInc=50000000, 
+#     )
 
-# ModelChange
-modelChange1 = myModel.ModelChange(
-    activeInStep=False, 
-    createStepName='Step-1', 
-    includeStrain=False, 
-    name='Int-1', 
-    region=setForConnector)
-modelChange2 = myModel.ModelChange(
-    activeInStep=False, 
-    createStepName='Step-1', 
-    includeStrain=False, 
-    name='Int-2', 
-    region=setWholePartC)
-modelChange1.setValuesInStep(activeInStep=True, stepName='Step-2')
-modelChange2.setValuesInStep(activeInStep=True, stepName='Step-2')
+# # ModelChange
+# modelChange1 = myModel.ModelChange(
+#     activeInStep=False, 
+#     createStepName='Step-1', 
+#     includeStrain=False, 
+#     name='Int-1', 
+#     region=setForConnector)
+# modelChange2 = myModel.ModelChange(
+#     activeInStep=False, 
+#     createStepName='Step-1', 
+#     includeStrain=False, 
+#     name='Int-2', 
+#     region=setWholePartC)
+# modelChange1.setValuesInStep(activeInStep=True, stepName='Step-2')
+# modelChange2.setValuesInStep(activeInStep=True, stepName='Step-2')
 
-# 后续边界条件修改
-myModel.DisplacementBC(
-    amplitude=UNSET, 
-    createStepName='Step-2', 
-    distributionType=UNIFORM, 
-    fieldName='', fixed=ON, 
-    localCsys=None, 
-    name='BC-Hold-A', 
-    region=set_PartA_Bound,
-    u1=SET, u2=SET, u3=SET, 
-    ur1=UNSET, ur2=UNSET, ur3=UNSET)
-myModel.DisplacementBC(
-    amplitude=UNSET, 
-    createStepName='Step-2', 
-    distributionType=UNIFORM, 
-    fieldName='', fixed=ON, 
-    localCsys=None, 
-    name='BC-Hold-B', 
-    region=set_PartB_Bound,
-    u1=SET, u2=SET, u3=SET, 
-    ur1=UNSET, ur2=UNSET, ur3=UNSET)
-myModel.boundaryConditions['BC-Left'].deactivate('Step-3')
-myModel.boundaryConditions['BC-Right'].deactivate('Step-3')
+# # 后续边界条件修改
+# myModel.DisplacementBC(
+#     amplitude=UNSET, 
+#     createStepName='Step-2', 
+#     distributionType=UNIFORM, 
+#     fieldName='', fixed=ON, 
+#     localCsys=None, 
+#     name='BC-Hold-A', 
+#     region=set_PartA_Bound,
+#     u1=SET, u2=SET, u3=SET, 
+#     ur1=UNSET, ur2=UNSET, ur3=UNSET)
+# myModel.DisplacementBC(
+#     amplitude=UNSET, 
+#     createStepName='Step-2', 
+#     distributionType=UNIFORM, 
+#     fieldName='', fixed=ON, 
+#     localCsys=None, 
+#     name='BC-Hold-B', 
+#     region=set_PartB_Bound,
+#     u1=SET, u2=SET, u3=SET, 
+#     ur1=UNSET, ur2=UNSET, ur3=UNSET)
+# myModel.boundaryConditions['BC-Left'].deactivate('Step-3')
+# myModel.boundaryConditions['BC-Right'].deactivate('Step-3')
 
 mdb.saveAs(pathName=saveFileName)
 

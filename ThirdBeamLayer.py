@@ -19,11 +19,11 @@ def classification(inlst,):
             outDir[tempValue] = [point,]
     return outDir
 
-modelFile = shelve.open("modelPoints-Current.dat")
-time = modelFile['time']
-modelFile.close()
+# modelFile = shelve.open("modelPoints-Current.dat")
+# time = modelFile['time']
+# modelFile.close()
 
-odbDeformationData = shelve.open("washedPoints-Closer-Multi3-11.dat")
+odbDeformationData = shelve.open("washedPoints-FixFirst-Multi3-9.dat")
 
 Inner_Points = odbDeformationData["Inner_Points"]
 Inner_Points = sorted(Inner_Points, key=operator.itemgetter(0,1))
@@ -33,7 +33,8 @@ classifiedDict = classification(Inner_Points,)
 
 odbDeformationData.close()
 
-out = shelve.open("thirdBeam-%d.dat"%time)
+# out = shelve.open("thirdBeam-%d.dat"%time)
+out = shelve.open("thirdBeam-FixFirst-Multi3-9.dat")
 out["log"] = "key word: 'pointDict'."
 out["pointDict"] = classifiedDict
 out.close()
